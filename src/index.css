@@ -1,0 +1,226 @@
+@import "tailwindcss";
+@plugin "daisyui";
+
+@theme {
+  --color-primary: #6d00ff;
+  --color-secondary: #161a25;
+  --color-accent: #00ffa2;
+  --color-neutral: #0f111a;
+  --color-base-100: #0f111a;
+  --color-base-200: #161a25;
+  --color-base-300: #1c2333;
+  --color-info: #3abff8;
+  --color-success: #00ffa2;
+  --color-warning: #fbbd23;
+  --color-error: #ff4b4b;
+
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+
+  --radius-app-card: 16px;
+  --radius-app-btn: 12px;
+}
+
+@layer base {
+  body {
+    @apply bg-[#181921] text-white font-sans antialiased selection:bg-primary selection:text-white;
+  }
+
+  /* Custom Scrollbar - Premium Dark Theme */
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-white/10 rounded-full hover:bg-white/20 transition-colors;
+  }
+}
+
+@layer components {
+  /* Utility class for premium glass surfaces */
+  .surface-glass {
+    @apply bg-[#151221]/80 backdrop-blur-xl border border-white/5;
+  }
+
+  /* Main navigation tab styling */
+  .nav-tab {
+    @apply text-[15px] font-semibold transition-all relative py-6 text-white/60 hover:text-white;
+  }
+
+  .nav-tab-active {
+    @apply text-accent;
+  }
+
+  /* Badge styling */
+  .app-badge {
+    @apply px-1.5 py-0.5 rounded-sm text-[10px] font-black uppercase tracking-tighter;
+  }
+
+  .badge-live {
+    @apply bg-accent/10 border border-accent/20 text-accent;
+  }
+
+  .badge-ft {
+    @apply bg-primary/10 border border-primary/20 text-primary;
+  }
+
+  /* Button utility */
+  .btn-action {
+    @apply flex items-center justify-center rounded-full transition-all active:scale-95;
+  }
+}
+
+@layer utilities {
+  .text-glow-accent {
+    text-shadow: 0 0 10px rgba(0, 255, 165, 0.4);
+  }
+  .text-glow-primary {
+    text-shadow: 0 0 10px rgba(109, 0, 255, 0.4);
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* React Datepicker Custom Styles */
+.react-datepicker {
+  @apply bg-[#1A1D23]! font-sans! border! border-white/10! rounded-2xl! shadow-2xl! overflow-hidden!;
+}
+
+.react-datepicker__header {
+  @apply bg-[#161a25]! border-b! border-white/5! pt-4!;
+}
+
+.react-datepicker__current-month {
+  @apply text-white! font-bold! mb-2!;
+}
+
+.react-datepicker__day-name {
+  @apply text-white/40! font-bold! w-10!;
+}
+
+.react-datepicker__day {
+  @apply text-white/80! w-10! h-10! leading-10! m-0! hover:bg-white/5! rounded-lg! transition-all!;
+}
+
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected {
+  @apply bg-accent! text-[#0F111A]! font-bold! hover:bg-accent! hover:text-[#0F111A]!;
+}
+
+.react-datepicker__day--today {
+  @apply relative;
+}
+
+.react-datepicker__day--today:not(.react-datepicker__day--selected)::after {
+  content: "";
+  @apply absolute bottom-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-accent rounded-full;
+}
+
+.react-datepicker__navigation-icon::before {
+  @apply border-white/40! transition-colors!;
+}
+
+.react-datepicker__navigation:hover .react-datepicker__navigation-icon::before {
+  border-color: white;
+}
+
+.react-datepicker__triangle {
+  display: none !important;
+}
+
+.react-datepicker__day--outside-month {
+  @apply text-white/20!;
+}
+
+/* ── Calendar Picker Animations ── */
+@keyframes calFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes calSlideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0.6;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes calFadeScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ── 404 Page Animations ── */
+@keyframes notFoundFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes notFoundFloat {
+  from {
+    transform: translateY(0px) scale(1);
+    opacity: 0.3;
+  }
+  to {
+    transform: translateY(-18px) scale(1.15);
+    opacity: 0.7;
+  }
+}
+
+/* ── Live match wiggle (left-right shake) ── */
+@keyframes liveWiggle {
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  15% {
+    transform: translateX(3px);
+    opacity: 0.85;
+  }
+  30% {
+    transform: translateX(-3px);
+    opacity: 1;
+  }
+  45% {
+    transform: translateX(2px);
+    opacity: 0.9;
+  }
+  60% {
+    transform: translateX(-2px);
+    opacity: 1;
+  }
+  75% {
+    transform: translateX(1px);
+  }
+}
+.animate-live-wiggle {
+  animation: liveWiggle 3s ease-in-out infinite;
+}
