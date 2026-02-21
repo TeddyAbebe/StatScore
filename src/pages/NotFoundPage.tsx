@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
-/* ─────────── Bouncing Ball ─────────── */
 const BouncingBall = () => {
   const ballRef = useRef<HTMLDivElement>(null);
   const pos = useRef({ x: 50, y: 50 });
@@ -29,11 +28,11 @@ const BouncingBall = () => {
   return (
     <div
       ref={ballRef}
-      className="absolute w-8 h-8 md:w-10 md:h-10 pointer-events-none select-none"
+      className="absolute w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 pointer-events-none select-none"
       style={{ left: "50%", top: "50%" }}
     >
       <span
-        className="text-3xl md:text-4xl leading-none"
+        className="text-2xl sm:text-3xl md:text-4xl leading-none"
         role="img"
         aria-label="football"
       >
@@ -43,7 +42,6 @@ const BouncingBall = () => {
   );
 };
 
-/* ─────────── Floating particle ─────────── */
 const Particle = ({ style }: { style: React.CSSProperties }) => (
   <div
     className="absolute rounded-full bg-primary/30 blur-sm pointer-events-none"
@@ -64,7 +62,6 @@ const NotFoundPage = () => {
     return () => clearTimeout(t);
   }, [countdown, navigate]);
 
-  /* Random particles */
   const particles = [
     {
       width: 6,
@@ -125,25 +122,21 @@ const NotFoundPage = () => {
   ];
 
   return (
-    <div className="relative min-h-[calc(100vh-56px)] md:min-h-[calc(100vh-52px)] bg-[#0F111A] flex items-center justify-center overflow-hidden px-4 py-12">
+    <div className="relative min-h-[calc(100vh-56px)] md:min-h-[calc(100vh-52px)] bg-[#0F111A] flex items-center justify-center overflow-hidden px-4 py-10 sm:py-14">
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-primary/10 rounded-full blur-[100px]" />
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-accent/8 rounded-full blur-[120px]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[140px]" />
+        <div className="absolute -top-32 -left-32 w-64 h-64 sm:w-96 sm:h-96 bg-primary/10 rounded-full blur-[100px]" />
+        <div className="absolute -bottom-32 -right-32 w-64 h-64 sm:w-96 sm:h-96 bg-accent/8 rounded-full blur-[120px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] bg-primary/5 rounded-full blur-[140px]" />
       </div>
 
       <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.04]">
-        {/* Center circle */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] border-2 border-white rounded-full" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] sm:w-[300px] sm:h-[300px] border-2 border-white rounded-full" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 border-2 border-white rounded-full" />
-        {/* Center line */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[2px] h-full bg-white" />
-        {/* Penalty boxes */}
         <div className="absolute top-1/2 -translate-y-1/2 left-0 w-[15%] h-[50%] border-2 border-white border-l-0" />
         <div className="absolute top-1/2 -translate-y-1/2 right-0 w-[15%] h-[50%] border-2 border-white border-r-0" />
       </div>
 
-      {/* ── Floating particles ── */}
       {particles.map((p, i) => (
         <Particle
           key={i}
@@ -157,15 +150,12 @@ const NotFoundPage = () => {
         />
       ))}
 
-      {/* ── Bouncing ball ── */}
       <BouncingBall />
 
-      {/* ── Main content card ── */}
-      <div className="relative z-10 flex flex-col items-center text-center max-w-lg w-full animate-[notFoundFadeUp_0.6s_ease_forwards]">
-        {/* 404 text */}
+      <div className="relative z-10 flex flex-col items-center text-center w-full max-w-sm sm:max-w-md md:max-w-lg animate-[notFoundFadeUp_0.6s_ease_forwards]">
         <div className="relative mb-2 select-none">
           <span
-            className="text-[100px] font-black leading-none tracking-tighter"
+            className="text-[80px] sm:text-[100px] md:text-[120px] font-black leading-none tracking-tighter"
             style={{
               background:
                 "linear-gradient(135deg, #8b5cf6 0%, #6d28d9 40%, #00ffa2 100%)",
@@ -178,53 +168,48 @@ const NotFoundPage = () => {
             404
           </span>
           <span
-            className="absolute inset-0 text-[140px] sm:text-[180px] md:text-[220px] font-black leading-none tracking-tighter text-white/3 select-none"
+            className="hidden md:flex absolute inset-0 text-[120px] sm:text-[160px] md:text-[200px] font-black leading-none tracking-tighter text-white/3 select-none"
             aria-hidden
           >
             404
           </span>
         </div>
 
-        {/* Red card badge */}
-        <div className="flex items-center gap-2 mb-6">
-          <div className="w-5 h-7 bg-red-500 rounded-[3px] shadow-[0_0_16px_rgba(239,68,68,0.6)] rotate-[-8deg]" />
-          <span className="text-[13px] font-black text-red-400 uppercase tracking-[0.15em]">
+        <div className="flex items-center gap-2 mb-5 sm:mb-6">
+          <div className="w-4 h-6 sm:w-5 sm:h-7 bg-red-500 rounded-[3px] shadow-[0_0_16px_rgba(239,68,68,0.6)] rotate-[-8deg]" />
+          <span className="text-[11px] sm:text-[13px] font-black text-red-400 uppercase tracking-[0.15em]">
             Red Card — Page Sent Off
           </span>
-          <div className="w-5 h-7 bg-red-500 rounded-[3px] shadow-[0_0_16px_rgba(239,68,68,0.6)] rotate-[8deg]" />
+          <div className="w-4 h-6 sm:w-5 sm:h-7 bg-red-500 rounded-[3px] shadow-[0_0_16px_rgba(239,68,68,0.6)] rotate-[8deg]" />
         </div>
 
-        {/* Headline */}
-        <h1 className="text-xl  font-black text-white tracking-tight mb-3 leading-tight">
+        <h1 className="text-lg sm:text-xl md:text-2xl font-black text-white tracking-tight mb-3 leading-tight">
           You've wandered off
-          <br className="hidden sm:block" /> the pitch!
+          <br className="hidden xs:block" /> the pitch!
         </h1>
 
-        {/* Sub text */}
-        <p className="text-white/45 text-[10px] font-medium leading-relaxed max-w-[380px] mb-8">
+        <p className="text-white/45 text-[10px] sm:text-[11px] font-medium leading-relaxed max-w-[300px] sm:max-w-[380px] mb-7 sm:mb-8">
           The page you're looking for has been substituted, transferred, or
           simply never existed. Let's get you back to the match.
         </p>
 
-        {/* VAR review strip */}
-        <div className="flex items-center gap-3 bg-[#161a25] border border-white/8 rounded-2xl px-5 py-3 mb-8 w-full max-w-[340px]">
-          <span className="text-2xl shrink-0">📺</span>
-          <div className="text-left">
-            <p className="text-[11px] font-black text-accent uppercase tracking-widest mb-0.5">
+        <div className="flex items-center gap-3 bg-[#161a25] border border-white/8 rounded-2xl px-4 sm:px-5 py-3 mb-7 sm:mb-8 w-full max-w-[320px] sm:max-w-[340px]">
+          <span className="text-xl sm:text-2xl shrink-0">📺</span>
+          <div className="text-left min-w-0">
+            <p className="text-[10px] sm:text-[11px] font-black text-accent uppercase tracking-widest mb-0.5">
               VAR Review
             </p>
-            <p className="text-[13px] text-white/60 font-medium">
+            <p className="text-[12px] sm:text-[13px] text-white/60 font-medium leading-snug">
               Redirecting to home in{" "}
               <span className="text-white font-black tabular-nums">
                 {countdown}s
               </span>
             </p>
           </div>
-          {/* Countdown ring */}
           <div className="ml-auto shrink-0">
             <svg
-              width="36"
-              height="36"
+              width="34"
+              height="34"
               viewBox="0 0 36 36"
               className="-rotate-90"
             >
@@ -252,25 +237,24 @@ const NotFoundPage = () => {
           </div>
         </div>
 
-        {/* Action buttons */}
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-[360px]">
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-[320px] sm:max-w-[360px]">
           <button
             onClick={() => navigate("/matches")}
-            className="w-full sm:flex-1 h-12 bg-primary hover:bg-primary/90 text-white text-[14px] font-bold rounded-2xl transition-all hover:scale-[1.02] active:scale-95 shadow-[0_0_30px_rgba(139,92,246,0.4)] flex items-center justify-center gap-2"
+            className="w-full sm:flex-1 h-11 sm:h-12 bg-primary hover:bg-primary/90 text-white text-[13px] sm:text-[14px] font-bold rounded-2xl transition-all hover:scale-[1.02] active:scale-95 shadow-[0_0_30px_rgba(139,92,246,0.4)] flex items-center justify-center gap-2"
           >
             <span>🏟️</span>
             Back to Matches
           </button>
           <button
             onClick={() => window.history.back()}
-            className="w-full sm:flex-1 h-12 bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white text-[14px] font-bold rounded-2xl transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
+            className="w-full sm:flex-1 h-11 sm:h-12 bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white text-[13px] sm:text-[14px] font-bold rounded-2xl transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
           >
             <span>↩</span>
             Go Back
           </button>
         </div>
 
-        <div className="mt-10 flex items-center gap-4 text-white/20 text-[11px] font-bold uppercase tracking-widest">
+        <div className="mt-8 sm:mt-10 flex flex-wrap justify-center items-center gap-x-4 gap-y-2 text-white/20 text-[10px] sm:text-[11px] font-bold uppercase tracking-widest">
           <span>Live</span>
           <div className="w-1 h-1 rounded-full bg-white/20" />
           <span>Matches</span>

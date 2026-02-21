@@ -46,6 +46,7 @@ export interface MatchDetails extends Match {
   strResult: string;
   strVideo: string;
   homeYellowCards?: number;
+  homeRedCards?: number;
   awayYellowCards?: number;
   awayRedCards?: number;
 }

@@ -12,10 +12,12 @@ import {
   Goal,
 } from "lucide-react";
 import { RiMenuFill } from "react-icons/ri";
-import globeIcon from "../assets/globe.svg";
-import soccerIcon from "../assets/soccer.svg";
+import globeIcon from "../../assets/globe.svg";
+import soccerIcon from "../../assets/soccer.svg";
 import Flag from "react-world-flags";
-import logo from "../assets/logo.png";
+import logo from "../../assets/logo.png";
+
+import { PREMIER_LEAGUE_ID } from "../../constants/api";
 
 const tabs = [
   { label: "Live", path: "/live", icon: Tv2 },
@@ -28,7 +30,7 @@ const tabs = [
 ];
 
 const leagues = [
-  { id: "4328", name: "Premier League", code: "GB-ENG" },
+  { id: PREMIER_LEAGUE_ID, name: "Premier League", code: "GB-ENG" },
   { id: "4335", name: "La Liga", code: "ES" },
   { id: "4332", name: "Serie A", code: "IT" },
   { id: "4331", name: "Bundesliga", code: "DE" },
@@ -41,7 +43,7 @@ const Header = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const currentLeague = searchParams.get("league") || "4328";
+  const currentLeague = searchParams.get("league") || PREMIER_LEAGUE_ID;
   const selectedLeague =
     leagues.find((l) => l.id === currentLeague) || leagues[0];
 
@@ -71,10 +73,8 @@ const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-100 w-full bg-primary">
-        {/* ═══════════ DESKTOP ═══════════ */}
+      <header className="sticky top-0 z-100 w-full bg-primary mb-4">
         <div className="hidden lg:flex items-center h-[50px] px-6 max-w-[1440px] mx-auto gap-0">
-          {/* Logo */}
           <Link to="/" className="flex items-center shrink-0 mr-5">
             <img
               src={logo}
@@ -83,7 +83,6 @@ const Header = () => {
             />
           </Link>
 
-          {/* Nav tabs */}
           <nav className="flex items-center h-full flex-1">
             {tabs.map((tab) => {
               const active = isActive(tab.path);
@@ -106,19 +105,15 @@ const Header = () => {
             })}
           </nav>
 
-          {/* Right controls */}
           <div className="flex items-center gap-2 shrink-0">
-            {/* Globe SVG */}
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-[#6D00FF]/50 transition-colors">
               <img src={globeIcon} alt="globe" className="w-5 h-5" />
             </button>
 
-            {/* Soccer SVG */}
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-[#6D00FF]/50 transition-colors">
               <img src={soccerIcon} alt="soccer" className="w-5 h-5" />
             </button>
 
-            {/* League selector */}
             <button
               onClick={() => handleLeagueChange(selectedLeague.id)}
               className="flex items-center gap-1.5 bg-[#6D00FF]/50 hover:bg-white/15 px-3 py-1.5 rounded-xl transition-colors"
@@ -135,7 +130,6 @@ const Header = () => {
               <ChevronDown size={13} className="text-white/60" />
             </button>
 
-            {/* Season selector */}
             <button className="flex items-center gap-1 bg-[#6D00FF]/50 hover:bg-white/15 px-3 py-[7px] rounded-xl transition-colors shrink-0">
               <span className="text-[13px] font-semibold text-white leading-none">
                 2024/25
@@ -143,48 +137,39 @@ const Header = () => {
               <ChevronDown size={13} className="text-white/60" />
             </button>
 
-            {/* Country flag */}
             <div className="w-[26px] h-[26px] rounded-full overflow-hidden border-2 border-white/30 shrink-0 cursor-pointer ml-0.5">
               <Flag code="GB" className="w-full h-full object-cover" />
             </div>
           </div>
         </div>
 
-        {/* ═══════════ MOBILE ═══════════ */}
         <div className="lg:hidden flex items-center justify-between h-[52px] px-4">
-          {/* Logo */}
           <Link to="/" className="shrink-0">
             <img
               src={logo}
               alt="statscore"
-              className="h-[22px] w-auto object-contain"
+              className="h-[35px] w-auto object-contain"
             />
           </Link>
 
-          {/* Right controls */}
           <div className="flex items-center gap-1">
-            {/* Soccer SVG */}
             <div className="w-8 h-8 flex items-center justify-center">
               <img src={soccerIcon} alt="soccer" className="w-5 h-5" />
             </div>
 
-            {/* Globe SVG */}
             <div className="w-8 h-8 flex items-center justify-center">
               <img src={globeIcon} alt="globe" className="w-5 h-5" />
             </div>
 
-            {/* England flag circle */}
             <div className="w-6 h-6 rounded-full overflow-hidden border-2 border-white/30 shrink-0">
               <Flag code="GB-ENG" className="w-full h-full object-cover" />
             </div>
 
-            {/* Season badge */}
             <button className="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-md ml-1 shrink-0">
               <span className="text-[12px] font-bold text-white">2024/25</span>
               <ChevronDown size={11} className="text-white/60" />
             </button>
 
-            {/* Hamburger */}
             <button
               onClick={() => setDrawerOpen(true)}
               className="w-9 h-9 flex items-center justify-center ml-0.5 rounded-md hover:bg-white/10 transition-colors"
@@ -196,9 +181,6 @@ const Header = () => {
         </div>
       </header>
 
-      {/* ═══════════ MOBILE DRAWER ═══════════ */}
-
-      {/* Backdrop */}
       {drawerOpen && (
         <div
           className="fixed inset-0 z-150 bg-black/60 backdrop-blur-sm lg:hidden animate-[calFadeIn_0.2s_ease_forwards]"
@@ -206,7 +188,6 @@ const Header = () => {
         />
       )}
 
-      {/* Drawer Panel */}
       <aside
         className={`
           fixed top-0 right-0 z-160 h-full w-[300px] bg-[#12102a] flex flex-col
@@ -215,12 +196,11 @@ const Header = () => {
           ${drawerOpen ? "translate-x-0" : "translate-x-full"}
         `}
       >
-        {/* Drawer header */}
         <div className="flex items-center justify-between px-5 h-[52px] border-b border-white/8 shrink-0">
           <img
             src={logo}
             alt="statscore"
-            className="h-[20px] w-auto object-contain"
+            className="h-[40px] w-auto object-contain"
           />
           <button
             onClick={() => setDrawerOpen(false)}
@@ -230,10 +210,8 @@ const Header = () => {
           </button>
         </div>
 
-        {/* Accent glow strip */}
         <div className="h-[2px] bg-linear-to-r from-transparent via-accent to-transparent opacity-60 shrink-0" />
 
-        {/* Nav Links */}
         <nav className="flex-1 overflow-y-auto py-4 px-3">
           <p className="text-[10px] font-black text-white/25 uppercase tracking-[0.15em] px-3 mb-2">
             Navigation
@@ -256,7 +234,6 @@ const Header = () => {
                   }
                 `}
               >
-                {/* Active left bar */}
                 {active && (
                   <span className="absolute left-0 top-2 bottom-2 w-[3px] bg-accent rounded-full shadow-[0_0_10px_#00ffa2]" />
                 )}
@@ -274,10 +251,8 @@ const Header = () => {
             );
           })}
 
-          {/* Divider */}
           <div className="my-5 border-t border-white/6" />
 
-          {/* League section */}
           <p className="text-[10px] font-black text-white/25 uppercase tracking-[0.15em] px-3 mb-2">
             League
           </p>
@@ -315,7 +290,6 @@ const Header = () => {
           })}
         </nav>
 
-        {/* Drawer footer */}
         <div className="shrink-0 px-5 py-4 border-t border-white/8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">

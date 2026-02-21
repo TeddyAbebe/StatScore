@@ -4,7 +4,7 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import RootLayout from "./layout/RootLayout";
+import RootLayout from "./components/layout/RootLayout";
 import DashboardPage from "./pages/DashboardPage";
 import MatchDetailsPage from "./pages/MatchDetailsPage";
 import NotFoundPage from "./pages/NotFoundPage";

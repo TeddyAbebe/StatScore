@@ -91,26 +91,21 @@ const CalendarPicker = ({
   if (!isOpen) return null;
 
   return (
-    /* Backdrop */
     <div
       className="fixed inset-0 z-200 flex items-end sm:items-center justify-center"
       onClick={onClose}
     >
-      {/* Blurred dark backdrop */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-[calFadeIn_0.2s_ease_forwards]" />
 
-      {/* Calendar Panel */}
       <div
         ref={panelRef}
         className="relative z-10 w-full sm:w-auto sm:min-w-[340px] bg-[#161a25] border border-white/10 rounded-t-3xl sm:rounded-2xl shadow-[0_-20px_60px_rgba(0,0,0,0.7)] sm:shadow-2xl overflow-hidden animate-[calSlideUp_0.25s_cubic-bezier(0.32,0.72,0,1)_forwards] sm:animate-[calFadeScale_0.2s_ease_forwards]"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Drag handle (mobile) */}
         <div className="flex justify-center pt-3 pb-1 sm:hidden">
           <div className="w-10 h-1 bg-white/20 rounded-full" />
         </div>
 
-        {/* Header row */}
         <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-white/5">
           <button
             onClick={() => setViewMonth((m) => subMonths(m, 1))}
@@ -139,7 +134,6 @@ const CalendarPicker = ({
           </div>
         </div>
 
-        {/* Day labels */}
         <div className="grid grid-cols-7 px-4 pt-4 pb-1">
           {DAYS.map((d) => (
             <div
@@ -151,7 +145,6 @@ const CalendarPicker = ({
           ))}
         </div>
 
-        {/* Date grid */}
         <div className="grid grid-cols-7 px-4 pb-5 gap-y-1">
           {grid.map((date, idx) => {
             const isCurrentMonth = isSameMonth(date, viewMonth);
@@ -187,7 +180,6 @@ const CalendarPicker = ({
           })}
         </div>
 
-        {/* Footer */}
         <div className="px-4 pb-5">
           <button
             onClick={() => handleSelect(today)}

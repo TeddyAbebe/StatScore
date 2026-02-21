@@ -1,16 +1,16 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useMatches } from "../hooks/useMatches";
-import MatchCard from "../components/MatchCard";
-import CalendarPicker from "../components/CalendarPicker";
+import MatchCard from "../components/match/MatchCard";
+import CalendarPicker from "../components/ui/CalendarPicker";
+import { MatchCardSkeleton } from "../components/common/Loaders";
 import {
   ChevronLeft,
   ChevronRight,
   Calendar as CalendarIcon,
-  Heart,
   Wifi,
+  Heart,
 } from "lucide-react";
-import { PREMIER_LEAGUE_ID } from "../constants/api";
 import { format, addDays, subDays, parseISO, isSameDay } from "date-fns";
 
 const DashboardPage = () => {
@@ -20,38 +20,51 @@ const DashboardPage = () => {
   const leagueParam = searchParams.get("league") || "";
   const teamParam = searchParams.get("team") || "";
 
-  const { matches, loading } = useMatches({
-    date: teamParam ? undefined : dateParam,
-    leagueId: leagueParam || PREMIER_LEAGUE_ID,
-    teamId: teamParam,
-  });
+  const { matches, loading, loadingMore, error, hasMore, loadMore } =
+    useMatches({
+      date: teamParam ? undefined : dateParam,
+      leagueId: leagueParam || undefined,
+      teamId: teamParam,
+    });
 
   const [activeTab, setActiveTab] = useState("All");
   const [calendarOpen, setCalendarOpen] = useState(false);
 
-  const [favorites] = useState<string[]>(() => {
+  // Favorites logic
+  const [favorites, setFavorites] = useState<string[]>(() => {
     const saved = localStorage.getItem("favorites");
     return saved ? JSON.parse(saved) : [];
   });
 
+  const toggleFavorite = useCallback((id: string) => {
+    setFavorites((prev) => {
+      const next = prev.includes(id)
+        ? prev.filter((x) => x !== id)
+        : [...prev, id];
+      localStorage.setItem("favorites", JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
   const selectedDate = useMemo(() => parseISO(dateParam), [dateParam]);
 
-  const dates = useMemo(() => {
-    const list = [];
-    for (let i = -5; i <= 5; i++) {
-      const d = addDays(today, i);
-      list.push({
-        day: format(d, "EEE").toUpperCase(),
-        date: format(d, "d MMM"),
-        dayNum: format(d, "d"),
-        month: format(d, "MMM"),
-        fullDate: format(d, "yyyy-MM-dd"),
-        isActive: isSameDay(d, selectedDate),
-        isToday: isSameDay(d, today),
+  // Infinite Scroll Observer
+  const observer = useRef<IntersectionObserver | null>(null);
+  const lastElementRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (loading || loadingMore) return;
+      if (observer.current) observer.current.disconnect();
+
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          loadMore();
+        }
       });
-    }
-    return list;
-  }, [selectedDate, today]);
+
+      if (node) observer.current.observe(node);
+    },
+    [loading, loadingMore, hasMore, loadMore],
+  );
 
   const handleDateSelect = (fullDate: string) => {
     setSearchParams((prev) => {
@@ -60,117 +73,77 @@ const DashboardPage = () => {
     });
   };
 
+  const isLiveMatch = (m: any) =>
+    ["Started", "1H", "2H", "HT"].includes(m.strStatus || "") ||
+    m.strStatus?.includes("'");
+
+  const counts = useMemo(() => {
+    return {
+      All: matches.length,
+      Live: matches.filter(isLiveMatch).length,
+      Favorites: matches.filter((m) => favorites.includes(m.idEvent)).length,
+    };
+  }, [matches, favorites]);
+
   const filteredMatches = useMemo(() => {
     let result = matches;
     if (activeTab === "Live") {
-      result = matches.filter(
-        (m) =>
-          ["Started", "1H", "2H", "HT"].includes(m.strStatus || "") ||
-          m.strStatus?.includes("'"),
-      );
+      result = matches.filter(isLiveMatch);
     } else if (activeTab === "Favorites") {
       result = matches.filter((m) => favorites.includes(m.idEvent));
     }
     return result;
   }, [matches, activeTab, favorites]);
 
-  const liveCount = matches.filter(
-    (m) =>
-      ["Started", "1H", "2H", "HT"].includes(m.strStatus || "") ||
-      m.strStatus?.includes("'"),
-  ).length;
-
   const displayLeagues = useMemo(() => {
-    const leagues: { [key: string]: typeof matches } = {};
+    const leaguesMap: { [key: string]: typeof matches } = {};
     filteredMatches.forEach((m) => {
       const name = m.strLeague || "Other League";
-      if (!leagues[name]) leagues[name] = [];
-      leagues[name].push(m);
+      if (!leaguesMap[name]) leaguesMap[name] = [];
+      leaguesMap[name].push(m);
     });
-    return Object.entries(leagues).map(([name, m]) => ({ name, matches: m }));
+    return Object.entries(leaguesMap).map(([name, m]) => ({
+      name,
+      matches: m,
+    }));
   }, [filteredMatches]);
 
-  if (loading) {
+  const TABS = [
+    { id: "All", label: "All", icon: null },
+    { id: "Live", label: "Live", icon: Wifi },
+    { id: "Favorites", label: "Favorites", icon: Heart },
+  ];
+
+  if (error) {
     return (
-      <div className="flex flex-col items-center justify-center h-[70vh] bg-[#181921]">
-        <div className="w-9 h-9 border-[3px] border-[#00ffa2] border-t-transparent rounded-full animate-spin" />
+      <div className="flex flex-col items-center justify-center h-[70vh] bg-[#181921] px-6 text-center">
+        <p className="text-white/40 mb-4 text-[15px] font-medium">{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="bg-primary text-white border border-white/10 px-6 py-2 rounded-xl font-bold text-[13px] hover:bg-primary/80 transition-all"
+        >
+          Try Again
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="w-full bg-[#181921] min-h-screen">
+    <div className="w-full bg-transparent min-h-screen">
       <div className="max-w-[860px] mx-auto px-4 md:px-6 pt-5 pb-16">
         <h1 className="text-[20px] md:text-[22px] font-bold text-white mb-4 tracking-tight">
           Matches
         </h1>
 
-        {/* ══════════════ MOBILE Date Scroller ══════════════ */}
-        <div className="md:hidden mb-4">
-          <div className="flex items-stretch gap-0">
-            <div className="flex-1 overflow-x-auto scrollbar-hide">
-              <div className="flex items-stretch gap-px min-w-max">
-                {dates.map((d, i) => (
-                  <button
-                    key={i}
-                    onClick={() => handleDateSelect(d.fullDate)}
-                    className={`flex flex-col items-center justify-center min-w-[56px] h-[60px] px-1 transition-all shrink-0 ${
-                      d.isActive
-                        ? "bg-[#1c1533] relative"
-                        : "bg-transparent hover:bg-white/4"
-                    }`}
-                  >
-                    <span
-                      className={`text-[10px] font-medium uppercase tracking-wide ${
-                        d.isActive ? "text-white/60" : "text-white/30"
-                      }`}
-                    >
-                      {d.isToday ? "Today" : d.day}
-                    </span>
-                    <span
-                      className={`text-[13px] font-bold mt-0.5 ${
-                        d.isActive ? "text-white" : "text-white/50"
-                      }`}
-                    >
-                      {d.dayNum}
-                    </span>
-                    <span
-                      className={`text-[10px] ${
-                        d.isActive ? "text-white/60" : "text-white/30"
-                      }`}
-                    >
-                      {d.month}
-                    </span>
-                    {d.isActive && (
-                      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#00ffa2]" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <button
-              onClick={() => setCalendarOpen(true)}
-              className="w-[50px] h-[60px] flex items-center justify-center shrink-0 hover:bg-white/5 transition-colors"
-            >
-              <CalendarIcon size={18} className="text-[#00ffa2]" />
-            </button>
-          </div>
-          <div className="h-px bg-white/6" />
-        </div>
-
-        {/* ══════════════ DESKTOP Date Navigation ══════════════ */}
         <div className="hidden md:flex items-stretch bg-[#161a25] border border-white/[0.07] rounded-xl mb-5 overflow-hidden h-[52px]">
           <button
             onClick={() =>
               handleDateSelect(format(subDays(selectedDate, 1), "yyyy-MM-dd"))
             }
             className="w-14 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/5 transition-colors shrink-0"
-            aria-label="Previous day"
           >
             <ChevronLeft size={18} />
           </button>
-
           <button
             className="flex-1 flex items-center justify-center gap-2.5 hover:bg-white/4 transition-colors"
             onClick={() => setCalendarOpen(true)}
@@ -182,121 +155,111 @@ const DashboardPage = () => {
                 : format(selectedDate, "d MMM, yyyy")}
             </span>
           </button>
-
           <button
             onClick={() =>
               handleDateSelect(format(addDays(selectedDate, 1), "yyyy-MM-dd"))
             }
             className="w-14 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/5 transition-colors shrink-0"
-            aria-label="Next day"
           >
             <ChevronRight size={18} />
           </button>
         </div>
 
-        {/* ══════════════ Filter Tabs ══════════════ */}
-        <div className="flex items-center gap-2 mb-5">
-          <button
-            onClick={() => setActiveTab("All")}
-            className={`flex items-center gap-1.5 px-3 py-[6px] rounded-full text-[13px] font-semibold transition-all shrink-0 ${
-              activeTab === "All"
-                ? "bg-[#00ffa2] text-[#0F111A]"
-                : "bg-transparent text-white/50 hover:text-white border border-white/10"
-            }`}
-          >
-            <span>All</span>
-            <span
-              className={`text-[11px] font-black px-1.5 py-px rounded-full min-w-[18px] text-center ${
-                activeTab === "All"
-                  ? "bg-[#0F111A]/20 text-[#0F111A]"
-                  : "bg-white/10 text-white/50"
-              }`}
-            >
-              {matches.length}
-            </span>
-          </button>
+        {/* Enhanced Tabs */}
+        <div className="flex items-center gap-3 mb-6">
+          {TABS.map((tab) => {
+            const Icon = tab.icon;
+            const count = (counts as any)[tab.id];
+            const isActive = activeTab === tab.id;
 
-          <button
-            onClick={() => setActiveTab("Live")}
-            className={`flex items-center gap-1.5 px-3 py-[6px] rounded-full text-[13px] font-semibold transition-all shrink-0 ${
-              activeTab === "Live"
-                ? "bg-white/10 text-white"
-                : "bg-transparent text-white/50 hover:text-white border border-white/10"
-            }`}
-          >
-            <Wifi
-              size={12}
-              className={activeTab === "Live" ? "text-white" : "text-white/40"}
-            />
-            <span>Live</span>
-            <span
-              className={`text-[11px] font-black px-1.5 py-px rounded-full min-w-[18px] text-center ${
-                activeTab === "Live"
-                  ? "bg-white/15 text-white"
-                  : "bg-white/10 text-white/50"
-              }`}
-            >
-              {liveCount}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("Favorites")}
-            className={`flex items-center gap-1.5 px-3 py-[6px] rounded-full text-[13px] font-semibold transition-all shrink-0 ${
-              activeTab === "Favorites"
-                ? "bg-white/10 text-white"
-                : "bg-transparent text-white/50 hover:text-white border border-white/10"
-            }`}
-          >
-            <Heart
-              size={12}
-              className={
-                activeTab === "Favorites"
-                  ? "fill-[#f87171] text-[#f87171]"
-                  : "text-white/40"
-              }
-              strokeWidth={2}
-            />
-            <span>Favorites</span>
-            <span
-              className={`text-[11px] font-black px-1.5 py-px rounded-full min-w-[18px] text-center ${
-                activeTab === "Favorites"
-                  ? "bg-white/15 text-white"
-                  : "bg-white/10 text-white/50"
-              }`}
-            >
-              {favorites.length}
-            </span>
-          </button>
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2.5 px-4 py-[9px] rounded-xl text-[14px] font-bold transition-all border ${
+                  isActive
+                    ? "bg-[#00ffa2] text-[#0F111A] border-transparent shadow-[0_4px_20px_rgba(0,255,162,0.15)]"
+                    : "bg-[#1d1e2b] text-white/40 border-white/[0.05] hover:text-white/70"
+                }`}
+              >
+                {Icon && (
+                  <Icon
+                    size={isActive ? 17 : 17}
+                    className={isActive ? "" : "text-white/20"}
+                  />
+                )}
+                <span>{tab.label}</span>
+                <span
+                  className={`flex items-center justify-center min-w-[20px] h-[20px] px-1.5 rounded-full text-[10px] sm:text-[11px] font-black ${
+                    isActive
+                      ? "bg-black/10 text-black/60"
+                      : "bg-white/5 text-white/20"
+                  }`}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
-        {/* ══════════════ League Sections ══════════════ */}
         <div className="flex flex-col gap-4">
-          {displayLeagues.length > 0 ? (
-            displayLeagues.map((league, idx) => (
-              <div
-                key={idx}
-                className="bg-[#161a25]/70 rounded-xl overflow-hidden border border-white/6"
-              >
-                <div className="flex items-center justify-between px-4 py-3 border-b border-white/6">
-                  <span className="text-[13px] font-semibold text-white/80">
-                    {league.name}
-                  </span>
-                  <ChevronRight size={14} className="text-white/25" />
-                </div>
-
-                <div>
-                  {league.matches.map((match) => (
-                    <MatchCard key={match.idEvent} match={match} />
-                  ))}
-                </div>
-              </div>
-            ))
+          {loading && matches.length === 0 ? (
+            <div className="flex flex-col gap-1">
+              {[...Array(5)].map((_, i) => (
+                <MatchCardSkeleton key={i} />
+              ))}
+            </div>
           ) : (
-            <div className="py-20 text-center">
-              <CalendarIcon size={36} className="mx-auto mb-3 text-white/15" />
-              <p className="text-[14px] font-semibold text-white/25">
-                No matches scheduled
+            <>
+              {displayLeagues.map((league, idx) => (
+                <div
+                  key={idx}
+                  className="bg-[#161a25]/70 rounded-xl overflow-hidden mb-4"
+                >
+                  <div className="px-4 py-3 border-b border-white/5">
+                    <span className="text-[12px] font-black text-white/60 tracking-widest uppercase">
+                      {league.name}
+                    </span>
+                  </div>
+                  <div>
+                    {league.matches.map((match) => (
+                      <MatchCard
+                        key={match.idEvent}
+                        match={match}
+                        isFavorite={favorites.includes(match.idEvent)}
+                        onToggleFavorite={toggleFavorite}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
+
+              {/* Infinite Scroll Trigger */}
+              <div ref={lastElementRef} className="pb-10">
+                {loadingMore && (
+                  <div className="flex flex-col gap-1">
+                    {[...Array(3)].map((_, i) => (
+                      <MatchCardSkeleton key={i} />
+                    ))}
+                  </div>
+                )}
+                {!hasMore && matches.length > 0 && (
+                  <div className="text-center py-10 opacity-20">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.2em]">
+                      End of matches
+                    </p>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {!loading && filteredMatches.length === 0 && (
+            <div className="py-20 text-center opacity-20">
+              <CalendarIcon size={40} className="mx-auto mb-4" />
+              <p className="font-bold uppercase tracking-widest text-[13px]">
+                No matches found
               </p>
             </div>
           )}
