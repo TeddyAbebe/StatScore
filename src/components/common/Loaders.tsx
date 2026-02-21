@@ -1,5 +1,3 @@
-import React from "react";
-
 export const MatchCardSkeleton = () => (
   <div className="flex items-stretch w-full min-h-[58px] animate-pulse py-3">
     <div className="w-[3px] shrink-0 self-stretch rounded-r-sm my-2 bg-white/5" />

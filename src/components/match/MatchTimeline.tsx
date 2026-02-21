@@ -1,4 +1,3 @@
-import React from "react";
 import { MatchEvent } from "../../types";
 
 type EventKind =

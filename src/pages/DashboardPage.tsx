@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useMatches } from "../hooks/useMatches";
 import MatchCard from "../components/match/MatchCard";

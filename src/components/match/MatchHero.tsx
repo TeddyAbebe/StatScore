@@ -1,4 +1,3 @@
-import React from "react";
 import { format, parseISO } from "date-fns";
 import { MatchDetails } from "../../types";
 import { TeamBadge } from "./TeamBadge";
