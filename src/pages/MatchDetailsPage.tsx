@@ -5,6 +5,7 @@ import { useState } from "react";
 import { MatchHero } from "../components/match/MatchHero";
 import { MatchTimeline } from "../components/match/MatchTimeline";
 import { PageLoader } from "../components/common/Loaders";
+import { checkIfFinished } from "../utils/matchUtils";
 
 const MatchDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,11 +18,11 @@ const MatchDetailsPage = () => {
 
   if (error || !matchDetails) {
     return (
-      <div className="flex flex-col items-center justify-center h-[80vh] text-center p-8 bg-transparent">
+      <div className="flex flex-col items-center justify-center h-[80vh] text-center p-8 bg-transparent font-outfit">
         <p className="text-white/40 mb-6 text-[15px]">Match not found</p>
         <Link
           to="/matches"
-          className="bg-primary text-white px-6 py-2.5 rounded-xl font-bold text-[14px] hover:bg-primary/80 transition-colors"
+          className="bg-[#00ffa2] text-black px-6 py-2.5 rounded-xl font-bold text-[14px] hover:bg-[#00ffa2]/80 transition-colors"
         >
           Back to Matches
         </Link>
@@ -30,7 +31,7 @@ const MatchDetailsPage = () => {
   }
 
   return (
-    <div className="w-full max-w-[860px] mx-auto min-h-screen pb-10 text-white animate-[calFadeIn_0.3s_ease_forwards]">
+    <div className="w-full max-w-[860px] mx-auto min-h-screen pb-10 text-white animate-[calFadeIn_0.3s_ease_forwards] font-outfit">
       <div className="bg-[#1d1e2b] rounded-b-3xl overflow-hidden shadow-2xl">
         <div className="px-4 pt-4 pb-2 flex items-center gap-2">
           <Link
@@ -46,7 +47,7 @@ const MatchDetailsPage = () => {
 
         <MatchHero matchDetails={matchDetails} />
 
-        <div className="border-t border-white/8">
+        <div>
           <nav className="flex overflow-x-auto scrollbar-hide px-2">
             {TABS.map((tab) => (
               <button
@@ -79,10 +80,7 @@ const MatchDetailsPage = () => {
               homeScore={matchDetails.intHomeScore}
               awayScore={matchDetails.intAwayScore}
               startTime={matchDetails.strTime}
-              isFinished={
-                matchDetails.strStatus === "FT" ||
-                matchDetails.strStatus === "Finished"
-              }
+              isFinished={checkIfFinished(matchDetails.strStatus)}
             />
           </div>
         ) : (

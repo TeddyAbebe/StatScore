@@ -73,7 +73,7 @@ const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-100 w-full bg-primary mb-4">
+      <header className="sticky top-0 z-100 w-full bg-primary">
         <div className="hidden lg:flex items-center h-[50px] px-6 max-w-[1440px] mx-auto gap-0">
           <Link to="/" className="flex items-center shrink-0 mr-5">
             <img

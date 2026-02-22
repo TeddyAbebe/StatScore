@@ -1,17 +1,11 @@
 import { format, parseISO } from "date-fns";
-import { MatchDetails } from "../../types";
 import { TeamBadge } from "./TeamBadge";
-
-interface MatchHeroProps {
-  matchDetails: MatchDetails;
-}
+import { checkIfLive, checkIfFinished } from "../../utils/matchUtils";
+import { MatchHeroProps } from "../../types";
 
 export const MatchHero = ({ matchDetails }: MatchHeroProps) => {
-  const isFinished =
-    matchDetails.strStatus === "FT" || matchDetails.strStatus === "Finished";
-  const isLive =
-    ["Started", "1H", "2H", "HT"].includes(matchDetails.strStatus) ||
-    matchDetails.strStatus?.includes("'");
+  const isFinished = checkIfFinished(matchDetails.strStatus);
+  const isLive = checkIfLive(matchDetails.strStatus);
 
   const statusLabel = isFinished
     ? "Finished"
@@ -33,19 +27,17 @@ export const MatchHero = ({ matchDetails }: MatchHeroProps) => {
     : "11 AUG";
 
   return (
-    <section className="px-5 pt-8 pb-10 bg-transparent">
+    <section className="px-5 pt-8 pb-10 bg-transparent font-outfit">
       <div className="flex items-center justify-between gap-2 max-w-[620px] mx-auto relative">
-        {/* Home Team */}
         <div className="flex flex-col items-center gap-4 flex-1 min-w-0">
           <div className="relative">
-            <div className="p-1 rounded-full bg-white/[0.03] border border-white/[0.05] shadow-inner">
+            <div className="p-1">
               <TeamBadge
                 src={matchDetails.strHomeTeamBadge}
                 name={matchDetails.strHomeTeam}
                 size={68}
               />
             </div>
-            {/* Card Badges - Home Team (Top Right) */}
             <div className="absolute -top-1 -right-7 flex flex-row gap-[3px]">
               {(matchDetails.homeYellowCards ?? 0) > 0 && (
                 <div className="w-[18px] h-[24px] bg-[#fcd34d] rounded-[2px] flex items-center justify-center text-[12px] font-black text-black/80 shadow-[0_4px_12px_rgba(0,0,0,0.5)] border border-white/10">
@@ -64,7 +56,6 @@ export const MatchHero = ({ matchDetails }: MatchHeroProps) => {
           </span>
         </div>
 
-        {/* Score / Center Info */}
         <div className="flex flex-col items-center gap-1.5 shrink-0 px-5">
           <span className="text-[12px] font-bold text-white/30 tracking-[0.2em] mb-1">
             {matchDate}
@@ -93,20 +84,18 @@ export const MatchHero = ({ matchDetails }: MatchHeroProps) => {
           </span>
         </div>
 
-        {/* Away Team */}
         <div className="flex flex-col items-center gap-4 flex-1 min-w-0">
           <div className="relative">
-            <div className="p-1 rounded-full bg-white/[0.03] border border-white/[0.05] shadow-inner">
+            <div className="p-1">
               <TeamBadge
                 src={matchDetails.strAwayTeamBadge}
                 name={matchDetails.strAwayTeam}
                 size={68}
               />
             </div>
-            {/* Card Badges - Away Team (Top Left) */}
             <div className="absolute -top-1 -left-7 flex flex-row gap-[3px]">
               {(matchDetails.awayRedCards ?? 0) > 0 && (
-                <div className="w-[18px] h-[24px] bg-[#ef4444] rounded-[2px] flex items-center justify-center text-[12px] font-black text-white shadow-[0_4px_12px_rgba(0,0,0,0.5)] border border-white/10">
+                <div className="w-[18px] h-[24px] bg-[#ef4444] rounded-[2px] flex items-center justify-center text-[12px] font-black text-white shadow-[0_0_8px_rgba(0,0,0,0.5)] border border-white/10">
                   {matchDetails.awayRedCards}
                 </div>
               )}

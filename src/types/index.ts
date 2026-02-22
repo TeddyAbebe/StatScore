@@ -50,3 +50,39 @@ export interface MatchDetails extends Match {
   awayYellowCards?: number;
   awayRedCards?: number;
 }
+
+export interface MatchCardProps {
+  match: Match;
+  isFavorite?: boolean;
+  onToggleFavorite?: (id: string) => void;
+}
+
+export interface MatchHeroProps {
+  matchDetails: MatchDetails;
+}
+
+export interface MatchTimelineProps {
+  events: MatchEvent[];
+  homeScore?: string | null;
+  awayScore?: string | null;
+  startTime?: string;
+  isFinished?: boolean;
+}
+
+export interface DateScrollerProps {
+  selectedDate: Date;
+  onDateSelect: (date: string) => void;
+  onCalendarClick: () => void;
+}
+
+export interface CalendarPickerProps {
+  isOpen: boolean;
+  onClose: () => void;
+  selectedDate: string;
+  onSelect: (date: string) => void;
+}
+
+export interface LeagueGroup {
+  name: string;
+  matches: Match[];
+}

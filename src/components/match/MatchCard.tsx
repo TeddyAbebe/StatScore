@@ -1,24 +1,23 @@
 import { Link } from "react-router-dom";
 import { MoreVertical, Heart, Bell, BarChart2, Share2, X } from "lucide-react";
-import { Match } from "../../types";
 import { useState, useRef, useEffect } from "react";
-
-interface MatchCardProps {
-  match: Match;
-  isFavorite?: boolean;
-  onToggleFavorite?: (id: string) => void;
-}
+import {
+  checkIfLive,
+  checkIfFinished,
+  getStatusDisplay,
+} from "../../utils/matchUtils";
+import { MatchCardProps } from "../../types";
 
 const CardIcon = ({ color }: { color: "red" | "yellow" }) => (
   <span
-    className={`inline-block w-[9px] h-[12px] rounded-[1.5px] shadow ml-1.5 shrink-0 ${
-      color === "red" ? "bg-[#FF4B4B]" : "bg-[#FBBD23]"
+    className={`inline-block w-[7px] h-[10px] rounded-[1px] shadow-sm ml-1.5 shrink-0 ${
+      color === "red" ? "bg-[#ef4444]" : "bg-[#fcd34d]"
     }`}
   />
 );
 
 const Tag = ({ label }: { label: string }) => (
-  <span className="inline-flex items-center gap-[2px] ml-1.5 px-1 py-px text-[8px] font-black leading-none rounded text-[#00ffa2] bg-[#00ffa2]/10 border border-[#00ffa2]/25 shrink-0 uppercase tracking-wide">
+  <span className="inline-flex items-center gap-[2px] ml-2 px-1.5 py-0.5 text-[9px] font-black leading-none rounded-full text-[#00ffa2] bg-[#00ffa2]/10 border border-[#00ffa2]/20 shrink-0 uppercase tracking-tighter">
     <span className="text-[7px]">✓</span>
     {label}
   </span>
@@ -74,32 +73,17 @@ const MatchCard = ({
     setMenuOpen(false);
   };
 
-  const isLive =
-    ["Started", "1H", "2H", "HT"].includes(match.strStatus || "") ||
-    match.strStatus?.includes("'") ||
-    match.strStatus?.toLowerCase() === "live";
+  const isLive = checkIfLive(match.strStatus);
+  const isFinished = checkIfFinished(match.strStatus);
+  const statusText = getStatusDisplay(match);
 
-  const isFinished = match.strStatus === "FT" || match.strStatus === "Finished";
-
-  const homeScore = match.intHomeScore;
-  const awayScore = match.intAwayScore;
+  const homeScoreArr = match.intHomeScore;
+  const awayScoreArr = match.intAwayScore;
   const hasScore =
-    homeScore !== null &&
-    homeScore !== undefined &&
-    awayScore !== null &&
-    awayScore !== undefined;
-
-  const getStatusDisplay = () => {
-    if (isLive) {
-      if (match.strStatus === "HT") return "HT";
-      if (match.strStatus?.includes("'")) return match.strStatus;
-      return "1H";
-    }
-    if (isFinished) return "FT";
-    return match.strTime?.substring(0, 5) || "—";
-  };
-
-  const statusText = getStatusDisplay();
+    homeScoreArr !== null &&
+    homeScoreArr !== undefined &&
+    awayScoreArr !== null &&
+    awayScoreArr !== undefined;
 
   const MENU_ACTIONS = [
     {
@@ -131,148 +115,152 @@ const MatchCard = ({
   ];
 
   return (
-    <div className="relative border-b border-white/[0.04] last:border-0 overflow-visible group">
-      <div className="flex items-stretch w-full hover:bg-white/[0.02] transition-colors min-h-[58px]">
-        {/* Active Indicator */}
+    <div className="relative border-b border-white/4 last:border-0 overflow-visible group">
+      {isLive && (
+        <div className="absolute inset-y-0 left-0 w-[120px] bg-linear-to-r from-[#00ffa2]/10 via-[#00ffa2]/2 to-transparent pointer-events-none" />
+      )}
+
+      <div className="flex items-stretch w-full hover:bg-white/2 transition-colors min-h-[82px] py-1 relative z-10">
         <div
-          className={`w-[3px] shrink-0 self-stretch rounded-r-sm my-2 transition-all ${
+          className={`w-[4px] shrink-0 self-stretch rounded-r-[2px] my-3 ml-2.5 transition-all ${
             isLive
-              ? "bg-[#00ffa2] shadow-[0_0_10px_rgba(0,255,162,0.6)]"
+              ? "bg-[#00ffa2] shadow-[0_0_12px_rgba(0,255,162,0.4)]"
               : isFinished
-                ? "bg-[#FF4B4B] shadow-[0_0_8px_rgba(255,75,75,0.3)]"
-                : "bg-white/10"
+                ? "bg-[#ef4444]"
+                : "bg-[#2c3349]"
           }`}
         />
 
-        {/* Time/Status Section */}
-        <Link
-          to={`/match/${match.idEvent}`}
-          className="flex flex-col items-center justify-center w-[54px] shrink-0 py-3"
-        >
-          {isLive ? (
-            <>
-              <span className="text-[12px] font-bold text-[#00ffa2] leading-none tracking-tight">
-                {statusText}
-              </span>
-              <div className="mt-1.5 w-4 h-[2px] bg-[#00ffa2] rounded-full shadow-[0_0_6px_#00ffa2] animate-live-wiggle" />
-            </>
-          ) : (
+        <div className="flex-1 flex items-center min-w-0">
+          <div className="w-[60px] flex flex-col items-center justify-center shrink-0">
             <span
-              className={`text-[12px] font-bold tracking-tight leading-none ${
-                isFinished ? "text-[#FF4B4B]" : "text-white/40"
+              className={`text-[13px] font-bold tracking-tight uppercase ${
+                isLive
+                  ? "text-[#00ffa2]"
+                  : isFinished
+                    ? "text-[#ef4444]"
+                    : "text-white/40"
               }`}
             >
               {statusText}
             </span>
-          )}
-        </Link>
-
-        {/* Teams Section */}
-        <Link
-          to={`/match/${match.idEvent}`}
-          className="flex-1 flex flex-col justify-center gap-[9px] py-3 pl-1 min-w-0"
-        >
-          <div className="flex items-center gap-2.5 min-w-0">
-            {match.strHomeTeamBadge && !homeBadgeError ? (
-              <img
-                src={match.strHomeTeamBadge}
-                alt=""
-                className="w-[18px] h-[18px] object-contain shrink-0"
-                onError={() => setHomeBadgeError(true)}
-              />
-            ) : (
-              <div className="w-[18px] h-[18px] rounded-full bg-white/5 shrink-0 flex items-center justify-center border border-white/10">
-                <span className="text-[7px] text-white/40 font-black uppercase">
-                  {match.strHomeTeam?.substring(0, 2)}
-                </span>
-              </div>
+            {isLive && (
+              <div className="mt-1 w-4 h-[1.5px] bg-[#00ffa2] rounded-full shadow-[0_0_8px_#00ffa2]" />
             )}
-            <span className="text-[13px] font-semibold text-white/90 truncate leading-none">
-              {match.strHomeTeam}
-            </span>
-            {match.homeTag && <Tag label={match.homeTag} />}
-            {match.homeCardColor && <CardIcon color={match.homeCardColor} />}
           </div>
 
-          <div className="flex items-center gap-2.5 min-w-0">
-            {match.strAwayTeamBadge && !awayBadgeError ? (
-              <img
-                src={match.strAwayTeamBadge}
-                alt=""
-                className="w-[18px] h-[18px] object-contain shrink-0"
-                onError={() => setAwayBadgeError(true)}
-              />
-            ) : (
-              <div className="w-[18px] h-[18px] rounded-full bg-white/5 shrink-0 flex items-center justify-center border border-white/10">
-                <span className="text-[7px] text-white/40 font-black uppercase">
-                  {match.strAwayTeam?.substring(0, 2)}
-                </span>
+          <Link
+            to={`/match/${match.idEvent}`}
+            className="flex-1 flex flex-col justify-center gap-[12px] min-w-0 pr-2"
+          >
+            <div className="flex items-center justify-between min-w-0 h-[22px]">
+              <div className="flex items-center gap-3 min-w-0 pr-2">
+                {match.strHomeTeamBadge && !homeBadgeError ? (
+                  <img
+                    src={match.strHomeTeamBadge}
+                    alt=""
+                    className="w-[20px] h-[20px] object-contain shrink-0"
+                    onError={() => setHomeBadgeError(true)}
+                  />
+                ) : (
+                  <div className="w-[20px] h-[20px] rounded-sm bg-white/5 flex items-center justify-center border border-white/10 shrink-0">
+                    <span className="text-[8px] text-white/40 font-black uppercase">
+                      {match.strHomeTeam?.charAt(0)}
+                    </span>
+                  </div>
+                )}
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span
+                    className={`text-[14px] font-bold truncate ${hasScore ? "text-white" : "text-white/70"}`}
+                  >
+                    {match.strHomeTeam}
+                  </span>
+                  {match.homeTag && <Tag label={match.homeTag} />}
+                  {match.homeCardColor && (
+                    <CardIcon color={match.homeCardColor} />
+                  )}
+                </div>
               </div>
-            )}
-            <span className="text-[13px] font-semibold text-white/90 truncate leading-none">
-              {match.strAwayTeam}
-            </span>
-            {match.awayTag && <Tag label={match.awayTag} />}
-            {match.awayCardColor && <CardIcon color={match.awayCardColor} />}
-          </div>
-        </Link>
-
-        {/* Score & Actions Section */}
-        <div className="flex items-center pr-1 shrink-0">
-          {hasScore && (
-            <Link
-              to={`/match/${match.idEvent}`}
-              className="flex flex-col items-end gap-[9px] py-3 px-3 hover:bg-white/5 rounded-lg transition-colors"
-            >
-              <div className="flex items-center gap-1.5 h-[18px]">
+              <div className="flex items-center gap-2 shrink-0">
                 {match.homeAggScore && (
-                  <span className="text-[11px] text-white/25 font-semibold tabular-nums">
+                  <span className="text-[12px] text-white/20 font-medium tabular-nums">
                     [{match.homeAggScore}]
                   </span>
                 )}
-                <span className="text-[14px] font-black text-white tabular-nums leading-none min-w-[16px] text-right">
-                  {homeScore}
+                <span
+                  className={`text-[14px] font-black tabular-nums transition-colors w-4 text-center ${hasScore ? "text-white" : "text-white/10"}`}
+                >
+                  {match.intHomeScore ?? ""}
                 </span>
               </div>
-              <div className="flex items-center gap-1.5 h-[18px]">
+            </div>
+
+            <div className="flex items-center justify-between min-w-0 h-[22px]">
+              <div className="flex items-center gap-3 min-w-0 pr-2">
+                {match.strAwayTeamBadge && !awayBadgeError ? (
+                  <img
+                    src={match.strAwayTeamBadge}
+                    alt=""
+                    className="w-[20px] h-[20px] object-contain shrink-0"
+                    onError={() => setAwayBadgeError(true)}
+                  />
+                ) : (
+                  <div className="w-[20px] h-[20px] rounded-sm bg-white/5 flex items-center justify-center border border-white/10 shrink-0">
+                    <span className="text-[8px] text-white/40 font-black uppercase">
+                      {match.strAwayTeam?.charAt(0)}
+                    </span>
+                  </div>
+                )}
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span
+                    className={`text-[14px] font-bold truncate ${hasScore ? "text-white" : "text-white/70"}`}
+                  >
+                    {match.strAwayTeam}
+                  </span>
+                  {match.awayTag && <Tag label={match.awayTag} />}
+                  {match.awayCardColor && (
+                    <CardIcon color={match.awayCardColor} />
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
                 {match.awayAggScore && (
-                  <span className="text-[11px] text-white/25 font-semibold tabular-nums">
+                  <span className="text-[12px] text-white/20 font-medium tabular-nums">
                     [{match.awayAggScore}]
                   </span>
                 )}
-                <span className="text-[14px] font-black text-white tabular-nums leading-none min-w-[16px] text-right">
-                  {awayScore}
+                <span
+                  className={`text-[14px] font-black tabular-nums transition-colors w-4 text-center ${hasScore ? "text-white" : "text-white/10"}`}
+                >
+                  {match.intAwayScore ?? ""}
                 </span>
               </div>
-            </Link>
-          )}
+            </div>
+          </Link>
 
-          <div className="flex items-center h-full ml-1">
+          <div className="flex items-center gap-1 shrink-0 pr-1">
             <button
               onClick={handleToggleFavorite}
-              className={`w-10 h-full flex items-center justify-center shrink-0 transition-all ${
-                favAnim ? "scale-125" : "scale-100"
-              } hover:bg-white/5 rounded-lg`}
-              aria-label={
-                isFavorite ? "Remove from favorites" : "Add to favorites"
-              }
+              className={`w-10 h-10 flex items-center justify-center transition-all rounded-full hover:bg-white/5 active:scale-75 ${
+                favAnim
+                  ? "scale-125 shadow-[0_0_20px_rgba(248,113,113,0.3)]"
+                  : ""
+              }`}
             >
               <Heart
-                size={14}
-                className={
+                size={18}
+                className={`transition-all duration-300 ${
                   isFavorite
-                    ? "fill-[#f87171] text-[#f87171]"
-                    : "text-white/15 hover:text-[#f87171] transition-colors"
-                }
-                strokeWidth={2.5}
+                    ? "fill-[#f87171] text-[#f87171] drop-shadow-[0_0_8px_rgba(248,113,113,0.4)]"
+                    : "text-white/20 hover:text-white/40"
+                }`}
+                strokeWidth={isFavorite ? 0 : 2.5}
               />
             </button>
-
             <button
               ref={btnRef}
               onClick={handleMenuClick}
-              className="w-10 h-full flex items-center justify-center text-white/15 hover:text-white/60 hover:bg-white/5 rounded-lg transition-all shrink-0"
-              aria-label="Match options"
+              className="w-10 h-10 flex items-center justify-center text-white/20 hover:text-white/60 hover:bg-white/5 rounded-full transition-all shrink-0"
             >
               <MoreVertical size={16} />
             </button>
@@ -282,11 +270,11 @@ const MatchCard = ({
 
       {menuOpen && (
         <div
-          className="fixed z-[500] min-w-[210px] bg-[#161a25] border border-white/10 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden py-1.5 backdrop-blur-xl"
+          className="fixed z-500 min-w-[210px] bg-[#161a25] border border-white/10 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden py-1.5 backdrop-blur-xl"
           style={{ top: menuPos.top, right: menuPos.right }}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between px-4 pt-1 pb-3 border-b border-white/[0.06] mb-1">
+          <div className="flex items-center justify-between px-4 pt-1 pb-3 border-b border-white/6 mb-1">
             <span className="text-[10px] font-black text-white/30 uppercase tracking-widest truncate max-w-[140px]">
               Match Options
             </span>

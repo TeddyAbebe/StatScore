@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
 @import "tailwindcss";
 @plugin "daisyui";
 
@@ -14,7 +15,7 @@
   --color-warning: #fbbd23;
   --color-error: #ff4b4b;
 
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-sans: "Outfit", "Inter", system-ui, -apple-system, sans-serif;
 
   --radius-app-card: 16px;
   --radius-app-btn: 12px;
@@ -25,7 +26,6 @@
     @apply bg-[#181921] text-white font-sans antialiased selection:bg-primary selection:text-white;
   }
 
-  /* Custom Scrollbar - Premium Dark Theme */
   ::-webkit-scrollbar {
     width: 5px;
     height: 5px;
@@ -39,12 +39,10 @@
 }
 
 @layer components {
-  /* Utility class for premium glass surfaces */
   .surface-glass {
     @apply bg-[#151221]/80 backdrop-blur-xl border border-white/5;
   }
 
-  /* Main navigation tab styling */
   .nav-tab {
     @apply text-[15px] font-semibold transition-all relative py-6 text-white/60 hover:text-white;
   }
@@ -53,7 +51,6 @@
     @apply text-accent;
   }
 
-  /* Badge styling */
   .app-badge {
     @apply px-1.5 py-0.5 rounded-sm text-[10px] font-black uppercase tracking-tighter;
   }
@@ -66,7 +63,6 @@
     @apply bg-primary/10 border border-primary/20 text-primary;
   }
 
-  /* Button utility */
   .btn-action {
     @apply flex items-center justify-center rounded-full transition-all active:scale-95;
   }
@@ -88,7 +84,6 @@
   }
 }
 
-/* React Datepicker Custom Styles */
 .react-datepicker {
   @apply bg-[#1A1D23]! font-sans! border! border-white/10! rounded-2xl! shadow-2xl! overflow-hidden!;
 }
@@ -139,7 +134,6 @@
   @apply text-white/20!;
 }
 
-/* ── Calendar Picker Animations ── */
 @keyframes calFadeIn {
   from {
     opacity: 0;
@@ -171,7 +165,6 @@
   }
 }
 
-/* ── 404 Page Animations ── */
 @keyframes notFoundFadeUp {
   from {
     opacity: 0;
@@ -194,7 +187,6 @@
   }
 }
 
-/* ── Live match wiggle (left-right shake) ── */
 @keyframes liveWiggle {
   0%,
   100% {

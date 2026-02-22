@@ -1,4 +1,4 @@
-import { MatchEvent } from "../../types";
+import { MatchTimelineProps } from "../../types";
 
 type EventKind =
   | "goal"
@@ -98,7 +98,7 @@ const PlayerCell = ({
   const textAlign =
     align === "left" ? "items-end text-right" : "items-start text-left";
   return (
-    <div className={`flex flex-col ${textAlign} min-w-0 flex-1`}>
+    <div className={`flex flex-col ${textAlign} min-w-0 flex-1 font-outfit`}>
       <span
         className={`leading-tight truncate max-w-full text-[12px] font-semibold ${kind === "penalty" ? "text-[#FBBD23]" : "text-white/80"}`}
       >
@@ -115,14 +115,6 @@ const PlayerCell = ({
   );
 };
 
-interface MatchTimelineProps {
-  events: MatchEvent[];
-  homeScore: string | null;
-  awayScore: string | null;
-  startTime?: string;
-  isFinished?: boolean;
-}
-
 export const MatchTimeline = ({
   events,
   homeScore,
@@ -134,14 +126,14 @@ export const MatchTimeline = ({
 
   if (allEvents.length === 0) {
     return (
-      <p className="text-center text-white/25 text-[13px] py-14">
+      <p className="text-center text-white/25 text-[13px] py-14 font-outfit">
         No match events recorded yet
       </p>
     );
   }
 
   return (
-    <div className="relative">
+    <div className="relative font-outfit">
       <div className="absolute left-1/2 top-0 bottom-0 w-px bg-white/5 -translate-x-1/2 pointer-events-none" />
 
       <div className="flex items-center gap-3 mb-5 relative z-10">

@@ -36,7 +36,6 @@ export const useMatches = (params: UseMatchesParams) => {
       abortControllerRef.current = new AbortController();
 
       try {
-        // Simulate network latency
         await new Promise((resolve, reject) => {
           const timeout = setTimeout(resolve, isInitial ? 600 : 1000);
           abortControllerRef.current?.signal.addEventListener("abort", () => {
@@ -47,7 +46,6 @@ export const useMatches = (params: UseMatchesParams) => {
 
         let allResults = [...MOCK_MATCHES];
 
-        // Filtering
         if (params.leagueId) {
           allResults = allResults.filter((m) => m.idLeague === params.leagueId);
         }
@@ -61,7 +59,6 @@ export const useMatches = (params: UseMatchesParams) => {
           );
         }
 
-        // Pagination
         const currentOffset = offsetRef.current;
         const paginatedResults = allResults.slice(
           currentOffset,
@@ -89,7 +86,6 @@ export const useMatches = (params: UseMatchesParams) => {
     [params.date, params.leagueId, params.teamId],
   );
 
-  // Initial fetch on param changes
   useEffect(() => {
     fetchMatches(true);
 

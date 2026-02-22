@@ -3,22 +3,27 @@ import { useSearchParams } from "react-router-dom";
 import { useMatches } from "../hooks/useMatches";
 import MatchCard from "../components/match/MatchCard";
 import CalendarPicker from "../components/ui/CalendarPicker";
+import DateScroller from "../components/ui/DateScroller";
 import { MatchCardSkeleton } from "../components/common/Loaders";
 import {
+  Heart,
   ChevronLeft,
   ChevronRight,
   Calendar as CalendarIcon,
-  Wifi,
-  Heart,
+  Radio,
+  LayoutGrid,
 } from "lucide-react";
 import { format, addDays, subDays, parseISO, isSameDay } from "date-fns";
+import { checkIfLive, groupMatchesByLeague } from "../utils/matchUtils";
+import { LeagueGroup, Match } from "../types";
 
 const DashboardPage = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [params, setSearchParams] = useSearchParams();
+
   const today = useMemo(() => new Date(), []);
-  const dateParam = searchParams.get("date") || format(today, "yyyy-MM-dd");
-  const leagueParam = searchParams.get("league") || "";
-  const teamParam = searchParams.get("team") || "";
+  const dateParam = params.get("date") || format(today, "yyyy-MM-dd");
+  const leagueParam = params.get("league") || "";
+  const teamParam = params.get("team") || "";
 
   const { matches, loading, loadingMore, error, hasMore, loadMore } =
     useMatches({
@@ -30,7 +35,6 @@ const DashboardPage = () => {
   const [activeTab, setActiveTab] = useState("All");
   const [calendarOpen, setCalendarOpen] = useState(false);
 
-  // Favorites logic
   const [favorites, setFavorites] = useState<string[]>(() => {
     const saved = localStorage.getItem("favorites");
     return saved ? JSON.parse(saved) : [];
@@ -48,11 +52,11 @@ const DashboardPage = () => {
 
   const selectedDate = useMemo(() => parseISO(dateParam), [dateParam]);
 
-  // Infinite Scroll Observer
   const observer = useRef<IntersectionObserver | null>(null);
   const lastElementRef = useCallback(
     (node: HTMLDivElement | null) => {
-      if (loading || loadingMore) return;
+      if (loading || loadingMore || activeTab !== "All") return;
+
       if (observer.current) observer.current.disconnect();
 
       observer.current = new IntersectionObserver((entries) => {
@@ -63,7 +67,7 @@ const DashboardPage = () => {
 
       if (node) observer.current.observe(node);
     },
-    [loading, loadingMore, hasMore, loadMore],
+    [loading, loadingMore, hasMore, loadMore, activeTab],
   );
 
   const handleDateSelect = (fullDate: string) => {
@@ -73,54 +77,42 @@ const DashboardPage = () => {
     });
   };
 
-  const isLiveMatch = (m: any) =>
-    ["Started", "1H", "2H", "HT"].includes(m.strStatus || "") ||
-    m.strStatus?.includes("'");
-
   const counts = useMemo(() => {
     return {
       All: matches.length,
-      Live: matches.filter(isLiveMatch).length,
-      Favorites: matches.filter((m) => favorites.includes(m.idEvent)).length,
+      Live: matches.filter((m) => checkIfLive(m.strStatus)).length,
+      Favorites: matches.filter((m: Match) => favorites.includes(m.idEvent))
+        .length,
     };
   }, [matches, favorites]);
 
   const filteredMatches = useMemo(() => {
     let result = matches;
     if (activeTab === "Live") {
-      result = matches.filter(isLiveMatch);
+      result = matches.filter((m) => checkIfLive(m.strStatus));
     } else if (activeTab === "Favorites") {
-      result = matches.filter((m) => favorites.includes(m.idEvent));
+      result = matches.filter((m: Match) => favorites.includes(m.idEvent));
     }
     return result;
   }, [matches, activeTab, favorites]);
 
-  const displayLeagues = useMemo(() => {
-    const leaguesMap: { [key: string]: typeof matches } = {};
-    filteredMatches.forEach((m) => {
-      const name = m.strLeague || "Other League";
-      if (!leaguesMap[name]) leaguesMap[name] = [];
-      leaguesMap[name].push(m);
-    });
-    return Object.entries(leaguesMap).map(([name, m]) => ({
-      name,
-      matches: m,
-    }));
+  const displayLeagues: LeagueGroup[] = useMemo(() => {
+    return groupMatchesByLeague(filteredMatches);
   }, [filteredMatches]);
 
   const TABS = [
-    { id: "All", label: "All", icon: null },
-    { id: "Live", label: "Live", icon: Wifi },
+    { id: "All", label: "All", icon: LayoutGrid },
+    { id: "Live", label: "Live", icon: Radio },
     { id: "Favorites", label: "Favorites", icon: Heart },
   ];
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center h-[70vh] bg-[#181921] px-6 text-center">
+      <div className="flex flex-col items-center justify-center h-[70vh] bg-[#0c0d12] px-6 text-center">
         <p className="text-white/40 mb-4 text-[15px] font-medium">{error}</p>
         <button
           onClick={() => window.location.reload()}
-          className="bg-primary text-white border border-white/10 px-6 py-2 rounded-xl font-bold text-[13px] hover:bg-primary/80 transition-all"
+          className="bg-[#00ffa2] text-black px-6 py-2 rounded-xl font-bold text-[13px] hover:bg-[#00ffa2]/80 transition-all font-outfit"
         >
           Try Again
         </button>
@@ -129,27 +121,34 @@ const DashboardPage = () => {
   }
 
   return (
-    <div className="w-full bg-transparent min-h-screen">
-      <div className="max-w-[860px] mx-auto px-4 md:px-6 pt-5 pb-16">
-        <h1 className="text-[20px] md:text-[22px] font-bold text-white mb-4 tracking-tight">
-          Matches
-        </h1>
+    <div className="w-full bg-[#10111a] min-h-screen font-outfit">
+      <div className="max-w-[860px] mx-auto px-4 md:px-6 pt-6 pb-20">
+        <div className="md:hidden">
+          <DateScroller
+            selectedDate={selectedDate}
+            onDateSelect={handleDateSelect}
+            onCalendarClick={() => setCalendarOpen(true)}
+          />
+        </div>
 
-        <div className="hidden md:flex items-stretch bg-[#161a25] border border-white/[0.07] rounded-xl mb-5 overflow-hidden h-[52px]">
+        <div className="hidden md:flex items-stretch bg-[#1c2234]/40 border border-white/5 rounded-2xl mb-8 overflow-hidden h-[60px] shadow-lg">
           <button
             onClick={() =>
               handleDateSelect(format(subDays(selectedDate, 1), "yyyy-MM-dd"))
             }
-            className="w-14 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/5 transition-colors shrink-0"
+            className="w-16 flex items-center justify-center text-white/30 hover:text-[#00ffa2] hover:bg-white/5 transition-all shrink-0"
           >
-            <ChevronLeft size={18} />
+            <ChevronLeft size={22} />
           </button>
           <button
-            className="flex-1 flex items-center justify-center gap-2.5 hover:bg-white/4 transition-colors"
+            className="flex-1 flex items-center justify-center gap-3 hover:bg-white/2 transition-all group"
             onClick={() => setCalendarOpen(true)}
           >
-            <CalendarIcon size={16} className="text-white/50" />
-            <span className="text-[15px] font-semibold text-white">
+            <CalendarIcon
+              size={18}
+              className="text-[#00ffa2]/60 group-hover:text-[#00ffa2] transition-colors"
+            />
+            <span className="text-[16px] font-bold text-white tracking-tight">
               {isSameDay(selectedDate, today)
                 ? "Today"
                 : format(selectedDate, "d MMM, yyyy")}
@@ -159,14 +158,13 @@ const DashboardPage = () => {
             onClick={() =>
               handleDateSelect(format(addDays(selectedDate, 1), "yyyy-MM-dd"))
             }
-            className="w-14 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/5 transition-colors shrink-0"
+            className="w-16 flex items-center justify-center text-white/30 hover:text-[#00ffa2] hover:bg-white/5 transition-all shrink-0"
           >
-            <ChevronRight size={18} />
+            <ChevronRight size={22} />
           </button>
         </div>
 
-        {/* Enhanced Tabs */}
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex items-center gap-2 sm:gap-3 mb-8">
           {TABS.map((tab) => {
             const Icon = tab.icon;
             const count = (counts as any)[tab.id];
@@ -176,24 +174,25 @@ const DashboardPage = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2.5 px-4 py-[9px] rounded-xl text-[14px] font-bold transition-all border ${
+                className={`flex items-center gap-1.5 sm:gap-2.5 px-3 py-2 sm:px-4 sm:py-[11px] rounded-xl text-[13px] sm:text-[15px] font-bold transition-all border ${
                   isActive
-                    ? "bg-[#00ffa2] text-[#0F111A] border-transparent shadow-[0_4px_20px_rgba(0,255,162,0.15)]"
-                    : "bg-[#1d1e2b] text-white/40 border-white/[0.05] hover:text-white/70"
+                    ? "bg-[#00ffa2] text-black border-transparent shadow-[0_8px_24px_rgba(0,255,162,0.2)]"
+                    : "bg-[#1c2234]/40 text-white/50 border-white/5 hover:text-white/80 active:scale-95"
                 }`}
               >
                 {Icon && (
                   <Icon
-                    size={isActive ? 17 : 17}
-                    className={isActive ? "" : "text-white/20"}
+                    size={16}
+                    className={isActive ? "text-black" : "text-white/20"}
+                    strokeWidth={isActive ? 3 : 2}
                   />
                 )}
                 <span>{tab.label}</span>
                 <span
-                  className={`flex items-center justify-center min-w-[20px] h-[20px] px-1.5 rounded-full text-[10px] sm:text-[11px] font-black ${
+                  className={`flex items-center justify-center min-w-[20px] h-[20px] sm:min-w-[22px] sm:h-[22px] px-1.5 rounded-full text-[10px] sm:text-[11px] font-black ${
                     isActive
-                      ? "bg-black/10 text-black/60"
-                      : "bg-white/5 text-white/20"
+                      ? "bg-black/10 text-black/70"
+                      : "bg-white/5 text-white/30"
                   }`}
                 >
                   {count}
@@ -203,9 +202,9 @@ const DashboardPage = () => {
           })}
         </div>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-6">
           {loading && matches.length === 0 ? (
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-2">
               {[...Array(5)].map((_, i) => (
                 <MatchCardSkeleton key={i} />
               ))}
@@ -215,14 +214,21 @@ const DashboardPage = () => {
               {displayLeagues.map((league, idx) => (
                 <div
                   key={idx}
-                  className="bg-[#161a25]/70 rounded-xl overflow-hidden mb-4"
+                  className="mx-1 sm:mx-0 bg-[#1c2234]/40 border border-white/5 rounded-[24px] overflow-hidden shadow-xl"
                 >
-                  <div className="px-4 py-3 border-b border-white/5">
-                    <span className="text-[12px] font-black text-white/60 tracking-widest uppercase">
-                      {league.name}
-                    </span>
+                  <div className="px-5 py-4 sm:px-6 sm:py-5 flex items-center justify-between group cursor-pointer hover:bg-white/2 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <span className="text-[14px] sm:text-[15px] font-bold text-white/90 tracking-tight">
+                        {league.name}
+                      </span>
+                    </div>
+                    <ChevronRight
+                      size={18}
+                      className="text-white/20 group-hover:text-white/50 transition-colors"
+                    />
                   </div>
-                  <div>
+
+                  <div className="pb-2">
                     {league.matches.map((match) => (
                       <MatchCard
                         key={match.idEvent}
@@ -235,31 +241,34 @@ const DashboardPage = () => {
                 </div>
               ))}
 
-              {/* Infinite Scroll Trigger */}
-              <div ref={lastElementRef} className="pb-10">
-                {loadingMore && (
-                  <div className="flex flex-col gap-1">
-                    {[...Array(3)].map((_, i) => (
-                      <MatchCardSkeleton key={i} />
-                    ))}
-                  </div>
-                )}
-                {!hasMore && matches.length > 0 && (
-                  <div className="text-center py-10 opacity-20">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.2em]">
-                      End of matches
-                    </p>
-                  </div>
-                )}
-              </div>
+              {activeTab === "All" && (
+                <div ref={lastElementRef} className="pb-10 pt-4">
+                  {loadingMore && (
+                    <div className="flex flex-col gap-2">
+                      {[...Array(3)].map((_, i) => (
+                        <MatchCardSkeleton key={i} />
+                      ))}
+                    </div>
+                  )}
+                  {!hasMore && matches.length > 0 && (
+                    <div className="text-center py-12 opacity-15">
+                      <p className="text-[12px] font-black uppercase tracking-[0.3em] font-outfit">
+                        All matches loaded
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </>
           )}
 
           {!loading && filteredMatches.length === 0 && (
-            <div className="py-20 text-center opacity-20">
-              <CalendarIcon size={40} className="mx-auto mb-4" />
-              <p className="font-bold uppercase tracking-widest text-[13px]">
-                No matches found
+            <div className="py-24 text-center opacity-15">
+              <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CalendarIcon size={32} className="text-white" />
+              </div>
+              <p className="font-black uppercase tracking-widest text-[14px]">
+                No scheduled matches
               </p>
             </div>
           )}

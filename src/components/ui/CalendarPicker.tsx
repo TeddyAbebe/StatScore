@@ -14,12 +14,7 @@ import {
   parseISO,
 } from "date-fns";
 
-interface CalendarPickerProps {
-  isOpen: boolean;
-  onClose: () => void;
-  selectedDate: string;
-  onSelect: (date: string) => void;
-}
+import { CalendarPickerProps } from "../../types";
 
 const DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
